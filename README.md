@@ -1,10 +1,10 @@
-# 📡 Transferência Confiável de Arquivos com UDP
+#  Transferência Confiável de Arquivos com UDP
 
 Sistema de transferência de arquivos construído sobre UDP puro, com confiabilidade implementada manualmente na camada de aplicação — sem nenhuma biblioteca de controle de fluxo ou entrega garantida pronta.
 
 ---
 
-## 🗂 Estrutura do Projeto
+##  Estrutura do Projeto
 
 ```
 /
@@ -25,7 +25,7 @@ Sistema de transferência de arquivos construído sobre UDP puro, com confiabili
 
 ---
 
-## ⚙️ Dependências
+##  Dependências
 
 ### Backend
 
@@ -57,7 +57,7 @@ npm install -g @angular/cli
 
 ---
 
-## 🚀 Como Rodar
+##  Como Rodar
 
 ### 1. Backend
 
@@ -108,7 +108,7 @@ http://localhost:4200
 
 ---
 
-## 🖥️ Como Usar o Sistema
+##  Como Usar o Sistema
 
 Com backend e frontend rodando:
 
@@ -130,7 +130,7 @@ Com backend e frontend rodando:
 
 ---
 
-## 🔧 Configuração (`appsettings.json`)
+##  Configuração (`appsettings.json`)
 
 ```json
 {
@@ -151,7 +151,7 @@ Para desativar a simulação de perda:
 
 ---
 
-## 📦 Parâmetros Técnicos do Protocolo
+##  Parâmetros Técnicos do Protocolo
 
 | Parâmetro | Valor |
 |---|---|
@@ -164,7 +164,7 @@ Para desativar a simulação de perda:
 
 ---
 
-## 📐 Formato do Datagrama
+##  Formato do Datagrama
 
 Cada pacote enviado segue o cabeçalho customizado abaixo (big-endian):
 
@@ -191,7 +191,7 @@ Cada pacote enviado segue o cabeçalho customizado abaixo (big-endian):
 
 ---
 
-## 🔄 Fluxo de Transferência
+##  Fluxo de Transferência
 
 ### Upload (Cliente → Servidor)
 
@@ -230,7 +230,7 @@ Cliente                          Servidor
 ```
 Cliente                          Servidor
    │── FileChunk Seq=5 ────────▶│
-   │                             │ ✗ pacote descartado (10% loss)
+   │                             │  pacote descartado (10% loss)
    │   ... 500ms sem ACK ...     │
    │── FileChunk Seq=5 ────────▶│  (retransmissão, attempt 1/10)
    │◀─ Ack Seq=5 ───────────────│
@@ -239,7 +239,7 @@ Cliente                          Servidor
 
 ---
 
-## 🦈 Wireshark — Capturando os Pacotes
+##  Wireshark — Capturando os Pacotes
 
 1. Abra o **Wireshark**
 2. Selecione a interface de rede (`Loopback` para testes locais)
@@ -262,7 +262,7 @@ udp.port == 5000
 
 ---
 
-## 🗃️ Onde os Arquivos São Salvos
+##  Onde os Arquivos São Salvos
 
 ```
 backend/
@@ -276,7 +276,7 @@ backend/
 
 ---
 
-## 🛠️ Solução de Problemas
+##  Solução de Problemas
 
 **Porta 5000 já está em uso**
 ```
@@ -311,7 +311,7 @@ que ficam diretamente em ServerFiles/.
 
 ---
 
-## 👥 Equipe
+##  Equipe
 
 | Nome | Participação |
 |---|---|
