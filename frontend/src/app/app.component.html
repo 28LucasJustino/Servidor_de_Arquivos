@@ -1,0 +1,163 @@
+<header class="navbar">
+  <div class="container navbar-content">
+    <div class="logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+      </svg>
+      <span>Painel de Monitoramento UDP</span>
+    </div>
+    <div class="server-status">
+      <span class="status-badge online">●</span> Core Engine Escutando na Porta 5000
+    </div>
+  </div>
+</header>
+
+<main class="container main-content">
+  
+  <section class="card">
+    <h2>Enviar Arquivo via UDP Customizado</h2>
+    <p class="card-desc">Simulação de perda de pacotes ativa em 10%. Camada de aplicação gerencia timeouts e retransmissões.</p>
+    
+    <div class="upload-area">
+      <label for="file-input" class="file-label">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <span>Clique para selecionar e simular transferência</span>
+      </label>
+      <input type="file" id="file-input" (change)="onFileSelected($event)" style="display: none;" />
+    </div>
+  </section>
+
+  <section class="card" *ngIf="progressoTransferencia()">
+    <div class="header-progresso-row">
+      <h2>Monitoramento Reativo de Fluxo</h2>
+      <span class="badge-tipo-arquivo" [attr.data-ext]="tipoArquivo()">
+        {{ tipoArquivo() }}
+      </span>
+    </div>
+    <p class="card-desc">Eventos reativos capturados via Server-Sent Events (SSE) originados do barramento .NET.</p>
+
+    <div class="progress-details">
+      <div class="progress-row">
+        <span class="label">Arquivo:</span>
+        <span class="value text-ellipsis" [title]="progressoTransferencia()?.FileName">
+          {{ progressoTransferencia()?.FileName }}
+        </span>
+      </div>
+      <div class="progress-row">
+        <span class="label">Fluxo:</span>
+        <span class="value" style="font-weight: 500;">
+          {{ progressoTransferencia()?.Direction === 'Upload' ? '📤 Envio (Upload)' : '📥 Recebimento (Download)' }}
+        </span>
+      </div>
+      <div class="progress-row">
+        <span class="label">Velocidade Atual:</span>
+        <span class="value total-chunks">{{ velocidadeTransferencia() }}</span>
+      </div>
+      <div class="progress-row">
+        <span class="label">Tempo Restante Estimado:</span>
+        <span class="value valor-cronometro">{{ tempoRestante() }}</span>
+      </div>
+      <div class="progress-row">
+        <span class="label">Pacotes Reassembrados:</span>
+        <span class="value total-chunks">
+          {{ progressoTransferencia()?.CurrentChunk }} / {{ progressoTransferencia()?.TotalChunks }}
+        </span>
+      </div>
+      <div class="progress-row">
+        <span class="label">Último Evento UDP:</span>
+        <span [style.color]="progressoTransferencia()?.Event === 'Timeout' ? '#dc2626' : '#16a34a'" style="font-weight: bold;">
+          {{ progressoTransferencia()?.Event }}
+        </span>
+      </div>
+    </div>
+    
+    <div class="progress-bar-container">
+      <div class="progress-bar" 
+           [style.width.%]="(progressoTransferencia()?.CurrentChunk! / progressoTransferencia()?.TotalChunks!) * 100">
+      </div>
+    </div>
+  </section>
+
+  <section class="card history-card">
+    <div class="card-header-group">
+      <h2>Histórico e Fluxo de Transferência UDP</h2>
+      <p class="card-desc">Log das transmissões registradas pela camada de aplicação e eventos de pacotes.</p>
+    </div>
+
+    <div class="empty-state" *ngIf="historicoTransferencias().length === 0">
+      <div class="empty-icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <p>Aguardando início de tráfego de dados para registrar sessões.</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="historicoTransferencias().length > 0">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>ID da Sessão</th>
+            <th>Arquivo</th>
+            <th>Direção</th>
+            <th>Progresso (Chunks)</th>
+            <th>Status / Último Evento</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sessao of historicoTransferencias()"
+              [class.table-row-active]="!isConcluido(sessao)"
+              [class.table-row-done]="isConcluido(sessao)">
+
+            <td class="session-id" [title]="sessao.SessionId">
+              {{ sessao.SessionId.substring(0, 8) }}...
+            </td>
+
+            <td class="file-cell">
+              <span class="file-icon-badge">{{ getExtensao(sessao.FileName) }}</span>
+              <span class="file-name-text">{{ sessao.FileName }}</span>
+            </td>
+
+            <td>
+              <span class="direction-badge" [ngClass]="sessao.Direction.toLowerCase()">
+                <svg *ngIf="sessao.Direction === 'Upload'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+                <svg *ngIf="sessao.Direction !== 'Upload'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+                {{ sessao.Direction }}
+              </span>
+            </td>
+
+            <td>
+              <div class="progress-cell-group">
+                <span class="progress-counter">
+                  <strong>{{ sessao.CurrentChunk }}</strong> / {{ sessao.TotalChunks }}
+                </span>
+                <div class="mini-progress-bar-container">
+                  <div class="mini-progress-bar"
+                       [style.width.%]="sessao.TotalChunks > 0 ? (sessao.CurrentChunk / sessao.TotalChunks) * 100 : 0">
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <td>
+              <span class="event-badge" [attr.data-event]="isConcluido(sessao) ? 'ChunkAcked' : sessao.Event">
+                {{ isConcluido(sessao) ? 'Concluído' : sessao.Event }}
+              </span>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
